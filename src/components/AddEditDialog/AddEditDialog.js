@@ -86,6 +86,7 @@ export default function AddEditDialog(
                     <Button
                         onClick={() => handleConfirm(currency)}
                         color="primary"
+                        variant="contained"
                         disabled={!(currency.name && currency.rate)}
                     >
                         Confirm

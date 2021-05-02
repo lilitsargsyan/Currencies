@@ -6,7 +6,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import {Typography} from "@material-ui/core";
 
-export default function RemoveDialog({isOpenRemoveDialog, setIsOpenRemoveDialog, confirmRemoveCurrency}) {
+const RemoveDialog = ({isOpenRemoveDialog, setIsOpenRemoveDialog, confirmRemoveCurrency}) => {
     const handleClose = () => {
         setIsOpenRemoveDialog(false)
     };
@@ -35,10 +35,17 @@ export default function RemoveDialog({isOpenRemoveDialog, setIsOpenRemoveDialog,
                     </Typography>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={()=> handleClose()} color="secondary">
+                    <Button
+                        color="primary"
+                        onClick={()=> handleClose()}
+                    >
                         Cancel
                     </Button>
-                    <Button onClick={()=> handleConfirmRemove()} color="primary">
+                    <Button
+                        color="primary"
+                        variant="contained"
+                        onClick={()=> handleConfirmRemove()}
+                    >
                         Confirm
                     </Button>
                 </DialogActions>
@@ -46,3 +53,4 @@ export default function RemoveDialog({isOpenRemoveDialog, setIsOpenRemoveDialog,
         </div>
     );
 }
+export default RemoveDialog;

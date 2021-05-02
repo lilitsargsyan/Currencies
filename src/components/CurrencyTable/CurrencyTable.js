@@ -5,7 +5,7 @@ import {makeStyles} from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
-import TextField from "@material-ui/core/TextField";
+import TextField from '@material-ui/core/TextField';
 import Paper from '@material-ui/core/Paper';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
@@ -14,11 +14,11 @@ import EditIcon from '@material-ui/icons/Edit';
 import DeleteIcon from '@material-ui/icons/Delete';
 import SearchIcon from '@material-ui/icons/Search';
 
-import {Box, Button, InputAdornment, Typography} from "@material-ui/core";
+import {Box, Button, InputAdornment, Typography, LinearProgress} from "@material-ui/core";
 import AddEditDialog from "../AddEditDialog/AddEditDialog";
 
 import RemoveDialog from "../RemoveDialog/RemoveDialog";
-import {fetchCurrencies} from "../../store/actions";
+import {fetchCurrencies, isLoading} from "../../store/actions";
 import firebase from "../../firebase";
 
 const useStyles = makeStyles({
@@ -26,7 +26,7 @@ const useStyles = makeStyles({
         minWidth: 650,
     },
     search: {
-        margin: '20px 0',
+        margin: "20px 0",
         minWidth: 350,
     },
 });
@@ -37,21 +37,18 @@ const CurrencyTable = () => {
 
     // Get store state
     const dispatch = useDispatch()
-    const {currencies} = useSelector(state => state.currencies)
+    const {currencies, loader} = useSelector(state => state.currencies)
 
     // Component state
     const [isOpenAddEditDialog, setIsOpenAddEditDialog] = useState(false);
     const [isOpenRemoveDialog, setIsOpenRemoveDialog] = useState(false);
     const [currencyItem, setCurrencyItem] = useState(null);
     const [isCreateDialog, setIsCreateDialog] = useState(true);
+    const [currenciesCopy, setCurrenciesCopy] = useState([]);
     const [search, setSearch] = useState('');
 
     // Firebase collection path
     const ref = firebase.firestore().collection('Currencies')
-
-    console.log("Currencies", currencies)
-    console.log("Currency Item", currencyItem)
-
 
     // Get Currencies from firebase
     useEffect(() => {
@@ -60,36 +57,56 @@ const CurrencyTable = () => {
 
     // Search currency by Currency name
     useEffect(() => {
-        const searchedData = currencies.filter((item) => {
-            return item.name.includes(search)
-        })
-        dispatch(fetchCurrencies(searchedData))
+        if (search) {
+            const searchedData = currencies.filter((item) => {
+                return item.name.includes(search)
+            })
+            dispatch(fetchCurrencies(searchedData))
+        } else {
+            dispatch(fetchCurrencies(currenciesCopy))
+        }
     }, [search])
 
 
     const getCurrencies = async () => {
-        await ref.onSnapshot((query) => { // watch for changes in Currencies doc in firebase
-            const currenciesList = [];
-            query.forEach((doc) => {
-                currenciesList.push({ ...doc.data(), id:doc.id}) // id generated from firebase
+        try {
+           await ref.onSnapshot((query) => { // watch for changes in Currencies doc in firebase
+                const currenciesList = [];
+                query.forEach((doc) => {
+                    currenciesList.push({ ...doc.data(), id:doc.id}) // id generated from firebase
+                })
+                dispatch(fetchCurrencies(currenciesList))
+                dispatch(isLoading(false))
+                setCurrenciesCopy(currenciesList)
             })
-            dispatch(fetchCurrencies(currenciesList))
-        })
+        } catch (e) {
+            console.log("[Get Currencies]", e);
+        }
     }
 
     // Add/Edit Currency from firebase
     const confirmAddEditCurrency = async (formData) => {
-        if (isCreateDialog) {
-            await ref.add(formData)
-        } else {
-            if (JSON.stringify(formData) === JSON.stringify(currencyItem)) return
-            await ref.doc(currencyItem.id).set(formData, { merge: true })
+        dispatch(isLoading(true))
+        try {
+            if (isCreateDialog) {
+                await ref.add(formData)
+            } else {
+                if (JSON.stringify(formData) === JSON.stringify(currencyItem)) return
+                await ref.doc(currencyItem.id).set(formData, { merge: true })
+            }
+        } catch (e) {
+            console.log("[Add/Edit Currency]", e)
         }
     }
 
     // Remove Currency from firebase
     const confirmRemoveCurrency = async () => {
-        await ref.doc(currencyItem.id).delete()
+        dispatch(isLoading(true))
+        try {
+            await ref.doc(currencyItem.id).delete()
+        } catch (e) {
+            console.log("[Delete Currency]", e)
+        }
     };
 
     //open Add/Edit Dialog
@@ -144,6 +161,7 @@ const CurrencyTable = () => {
                     }}
                 />
             </Box>
+            {loader && <LinearProgress />}
             <TableContainer component={Paper}>
                 <Table className={classes.table} aria-label="simple table">
                     <TableHead>
@@ -164,7 +182,7 @@ const CurrencyTable = () => {
                                 <TableCell>{currencyItem.rate}</TableCell>
                                 <TableCell align="right">
                                     <EditIcon
-                                        color="primary"
+                                        color="secondary"
                                         onClick={() => handleClickOpen(currencyItem, false)}
                                     />
                                     <DeleteIcon

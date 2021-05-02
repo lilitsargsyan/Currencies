@@ -1,18 +1,27 @@
 import React from "react";
-import {Container} from "@material-ui/core";
+import {Container, makeStyles} from "@material-ui/core";
 import CurrencyTable from "./components/CurrencyTable/CurrencyTable";
-import {ThemeProvider} from '@material-ui/core/styles';
-import theme from "./theme";
+import {whitTheme} from "./theme";
+import './app.css';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        width: "100%",
+        height:"100%",
+        paddingTop: '20px',
+        backgroundColor: theme.palette.background.paper
+    }
+}));
+
 
 function App() {
+    const classes = useStyles();
 
     return (
-        <ThemeProvider theme={theme}>
-            <Container>
-                <CurrencyTable />
-            </Container>
-        </ThemeProvider>
+        <Container maxWidth={false} className={classes.root} color="primary">
+            <CurrencyTable />
+        </Container>
     );
 }
 
-export default App;
+export default whitTheme(App);
