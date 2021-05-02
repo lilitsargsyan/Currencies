@@ -55,18 +55,6 @@ const CurrencyTable = () => {
         getCurrencies()
     }, [])
 
-    // Search currency by Currency name
-    useEffect(() => {
-        if (search) {
-            const searchedData = currencies.filter((item) => {
-                return item.name.includes(search)
-            })
-            dispatch(fetchCurrencies(searchedData))
-        } else {
-            dispatch(fetchCurrencies(currenciesCopy))
-        }
-    }, [search])
-
 
     const getCurrencies = async () => {
         try {
@@ -124,6 +112,14 @@ const CurrencyTable = () => {
 
     const handleSearch = ({target: {value}}) => {
         setSearch(value)
+        if (!value) {
+            dispatch(fetchCurrencies(currenciesCopy))
+            return
+        }
+        const searchedData = currencies.filter((item) => {
+            return item.name.includes(value)
+        })
+        dispatch(fetchCurrencies(searchedData))
     }
 
     return (
